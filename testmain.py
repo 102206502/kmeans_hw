@@ -3,6 +3,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+import kmeans
+
 class testmain(object):
 	"""docstring for main"""
 	def __init__(self):
@@ -11,10 +13,10 @@ class testmain(object):
 	
 	def main(self):
 		#load petal length(3rd col), petal width(4th col)
-		print(self.df.tail())
+		# print(self.df.tail())
 		x = self.df.iloc[:, 0:2].values
-		self.draw_lilis(x)
-		# y = df.iloc[]
+		# self.draw_lilis(x)
+		alg = kmeans.Kmeans(x, 6)
 
 	def draw_lilis(self, df):
 		x = df
