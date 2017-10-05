@@ -93,8 +93,10 @@ class Kmeans(object):
 			#step 3 : update centroid
 			for i_c in range(self.k_num):
 				points_in_cluster = samples[cluster_assment[:, 0] == i_c, :]
+				print('centroids before\n', centroids)
 				centroids[i_c, :] = np.mean(points_in_cluster, axis=0)
-					
+				print('centroids after\n', centroids)
+
 
 		print('cluster complete!')
 		return centroids, cluster_assment
