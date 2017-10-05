@@ -16,7 +16,7 @@ class testmain(object):
 		# print(self.df.tail())
 		x = self.df.iloc[:, 0:2].values
 		# self.draw_lilis(x)
-		alg = kmeans.Kmeans(x, 6)
+		alg = kmeans.Kmeans(x, 3)
 
 	def draw_lilis(self, df):
 		x = df

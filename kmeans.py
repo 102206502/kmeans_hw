@@ -23,7 +23,7 @@ class Kmeans(object):
 		self.points = self.data2points(data)
 		self.k_num = k_num
 		self.boundary = self.find_boundary()
-		print('points', self.points)
+		# print('points', self.points)
 		#step 1
 		self.k_points = self.select_ponits()
 		# print('k_points:', self.k_points)
@@ -76,7 +76,7 @@ class Kmeans(object):
 
 		while cluster_changed:
 			cluster_changed = False
-			for i_p in xrange(self.points):
+			for i_p in range(len(self.points)):
 				min_dist = 10000.0
 				min_idx = 0
 				#step 2 : find centroid of samples
@@ -91,9 +91,12 @@ class Kmeans(object):
 						cluster_assment[i_p,:] = [min_idx, min_dist**2]
 
 				#step 3 : update centroid
-				for i_c in xrange(centroid):
-					points_in_cluster = np.nonzero(clusterAssment[:, 0].A == j)[0]
+				for i_c in range(self.k_num):
+					points_in_cluster = samples[cluster_assment[:, 0] == i_c, :]
+					centroids[i_c, :] = np.mean(points_in_cluster, axis=0)
 
+		print('cluster complete!')
+		return centroids, cluster_assment
 		
 
 def gen_uniq_floats(lo, hi, n):
