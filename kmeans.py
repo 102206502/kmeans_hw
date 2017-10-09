@@ -22,17 +22,13 @@ class Kmeans(object):
     """
     def __init__(self, data, k_num):
         self.points = self.data2points(data)
+        self.co_vec_inv = np.linalg.inv(np.cov(self.points.T))
+        self.scaled_points = self.scale_data(self.points)
         self.k_num = k_num
         self.boundary = self.find_boundary()
         # print('points', self.points)
-        #step 1
         self.k_points = self.select_ponits()
         # print('k_points:', self.k_points)
-        #step 2
-        self.co_vec_inv = np.linalg.inv(np.cov(self.points.T))
-        self.do_kmeans()
-
-
 
     def data2points(self, data):
         # X = np.vstack([data[:, 0], data[:, 1]])
@@ -43,6 +39,18 @@ class Kmeans(object):
             temp_list.append(point)
 
         return np.array(temp_list)
+
+    def scale_data(self, data):
+        scale_points = data.copy()
+        points_cov = np.cov(self.points.T)
+        self.co_vec = points_cov
+        for i_p in range(len(scale_points)):
+            scale_points[i_p,:] = self.scale_point(scale_points[i_p,:])
+
+        return scale_points
+
+    def scale_point(self, point):
+    	return np.matmul(point, self.co_vec_inv)
 
     '''找出資料邊界'''
     def find_boundary(self):
@@ -93,7 +101,7 @@ class Kmeans(object):
                         cluster_assment[i_p,:] = [min_idx, min_dist]
 
             #step 3 : update centroid
-            centroids, cluster_changed = self.update_centroids(cluster_assment, centroids)
+            centroids, centroid_changed = self.update_centroids(cluster_assment, centroids)
             if not centroid_changed:
                 break
 
@@ -103,35 +111,59 @@ class Kmeans(object):
     def update_centroids(self, cluster_assment, centroids):
         samples = self.points
         centroid_changed = False
-            points_in_cluster_list = []
-            for i_c in range(self.k_num):
-                points_in_cluster = samples[cluster_assment[:, 0] == i_c, :]
-                points_in_cluster_list.append(points_in_cluster)
+        points_in_cluster_list = []
+        for i_c in range(self.k_num):
+            points_in_cluster = samples[cluster_assment[:, 0] == i_c, :]
+            points_in_cluster_list.append(points_in_cluster)
 
-            for i_c in range(self.k_num):
-                if len(points_in_cluster) == 0:
-                    self.spilt_cluster()
-                point_mean = np.mean(points_in_cluster, axis=0)
-                if point_mean[0]!=centroids[i_c, 0] and point_mean[1]!=centroids[i_c, 1]:
-                    cluster_changed = True
-                    centroids[i_c, :] = np.mean(points_in_cluster, axis=0)
-                # self.show_centoids(centroids)
-                # print('centroids after\n', centroids)
-            # print(points_in_cluster_list)
-            print('cluster_assment:\n', cluster_assment)
-            self.show_cluster(centroids, points_in_cluster_list)
+        for i_c in range(self.k_num):
+            if len(points_in_cluster_list[i_c]) == 0:
+                a, b, next_i = self.spilt_cluster(cluster_assment, i_c)
+                i_c = next_i
+                print('empty cluster!')
+            # elif i_c > self.k_num:
+            # 	break
+            else:
+                point_mean = np.mean(points_in_cluster_list[i_c], axis=0)
+            if point_mean[0]!=centroids[i_c, 0] and point_mean[1]!=centroids[i_c, 1]:
+                cluster_changed = True
+                centroids[i_c, :] = np.mean(points_in_cluster_list[i_c], axis=0)
+            # self.show_centoids(centroids)
+            # print('centroids after\n', centroids)
+        # print(points_in_cluster_list)
+        print('cluster_assment:\n', cluster_assment)
+        self.show_cluster(centroids, points_in_cluster_list)
         return centroids, centroid_changed
     '''選取下一個中心點的群組，並分為兩群
 
         psuedo code
         -----------
         pick next group of cluster
+        if the next group of cluster is empty
+            split cluster()
         split the group by x(or y)
         take the mean of the two groups as new centoids
-
+        return the two new centroids
     '''
-    def spilt_cluster(self):
-        pass
+    def spilt_cluster(self, cluster_assment, centroid_idx):
+        next_i = centroid_idx+1
+        centroid_a = self.k_points[centroid_idx]
+        centroid_b = self.k_points[next_i%(self.k_num)]
+        cluster_points_idx = np.where(cluster_assment[:, 0] == next_i%(self.k_num))
+        points_in_cluster = self.points[cluster_points_idx, :].copy()
+        if len(points_in_cluster) == 0:
+            print('連續空集合!?')
+            centroid_a, centroid_b, _ = spilt_cluster(cluster_assment, next_i%(self.k_num))
+        new_centroid_b = np.mean(points_in_cluster, axis=0)
+        scaled_new_ctr_b = self.scale_point(new_centroid_b.copy())
+        print('cluster_points_idx', cluster_points_idx)
+        cluster_a_idx = np.where(self.scaled_points[cluster_points_idx, 0] > scaled_new_ctr_b[0])
+        cluster_b_idx = np.where(self.scaled_points[cluster_points_idx, 0] <= scaled_new_ctr_b[0])
+        centroid_a = np.mean(self.points[cluster_a_idx,:], axis=0)
+        centroid_b = np.mean(self.points[cluster_b_idx,:], axis=0)
+        return centroid_a, centroid_b, next_i
+
+
 
     def show_centoids(self, centroids):
         plt.xlabel('petal width')
@@ -142,14 +174,15 @@ class Kmeans(object):
 
     def show_cluster(self, centroids, cluster_p):
         if self.k_num > 5:
-            print('k_num too large!')
+            print('k_num too large to show!')
             return
         marker_list = ['x', 'v', '*', 's', 'p']
+        color_list = ['gold', 'green', 'grey', 'lightgreen', 'orange']
         plt.xlabel('petal width')
         plt.ylabel('petal length')
         plt.scatter(centroids[:,0], centroids[:, 1], color='blue', marker='o')
-        for i in range(2):
-            plt.scatter(cluster_p[i][:, 0], cluster_p[i][:, 1], color='green', marker=marker_list[i])
+        for i in range(self.k_num):
+            plt.scatter(cluster_p[i][:, 0], cluster_p[i][:, 1], color=color_list[i], marker=marker_list[i])
             print('cluster_p', i, ':', cluster_p[i])
             print(cluster_p[i].shape)
         # plt.figure(num='k = '+str(self.k_num))

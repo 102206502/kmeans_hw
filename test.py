@@ -24,8 +24,11 @@ yy = y.reshape(i,j*k).T
 
 
 X = np.vstack([xx,yy])
-print(X)
-V = np.cov(X.T)
-print(V)
+# print(X.T)
+V = [[ 3.11317942,  1.29638747], [ 1.29638747,  0.58241432]]
+V = np.array(V)
 VI = np.linalg.inv(V)
+print(V, '\n', VI)
+print(np.dot(V, VI))
+print(np.dot(VI, V))
 # print np.diag(np.sqrt(np.dot(np.dot((xx-yy),VI),(xx-yy).T)))

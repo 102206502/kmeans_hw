@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import numpy as np
+from scipy import linalg
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -13,10 +14,9 @@ class testmain(object):
     
     def main(self):
         #load petal length(3rd col), petal width(4th col)
-        # print(self.df.tail())
         x = self.df.iloc[:, 0:2].values
-        # self.draw_lilis(x)
         alg = kmeans.Kmeans(x, 3)
+        alg.do_kmeans()
 
     def draw_lilis(self, df):
         x = df
