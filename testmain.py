@@ -14,9 +14,10 @@ class testmain(object):
     
     def main(self):
         #load petal length(3rd col), petal width(4th col)
-        x = self.df.iloc[:, 0:2].values
-        alg = kmeans.Kmeans(x, 3)
-        alg.do_kmeans()
+        data = self.df.iloc[:, 0:2].values
+        for k in range(2, 6):
+            alg = kmeans.Kmeans(data, k)
+            alg.do_kmeans()
 
     def draw_lilis(self, df):
         x = df
