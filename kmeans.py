@@ -4,7 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random
 
-#(使用Mahalanobis distance計算距離)
 #step 0. scale the coordinate
 #step 1. 選取k個點
 #step 2. 歸類選取點的附屬點
